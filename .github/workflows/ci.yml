@@ -1,0 +1,29 @@
+name: CI
+
+on:
+  push:
+    branches: ["main"]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+
+      - name: Restore packages
+        run: dotnet restore ./StorySpoiler.ApiTests/StorySpoiler.ApiTests.csproj
+
+      - name: Build solution
+        run: dotnet build ./StorySpoiler.ApiTests/StorySpoiler.ApiTests.csproj --configuration Release --no-restore
+
+      - name: Run tests
+        env:
+          STORY_USER: ${{ secrets.STORY_USER }}
+          STORY_PASS: ${{ secrets.STORY_PASS }}
+        run: dotnet test ./StorySpoiler.ApiTests/StorySpoiler.ApiTests.csproj --configuration Release --no-build --logger "trx;LogFileName=test-results.trx"
